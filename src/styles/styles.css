@@ -20,3 +20,32 @@ code {
   justify-content: center;
   align-items: center;
 }
+
+.root{
+  position: relative;
+}
+
+.settings-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.settings-icon:hover {
+  opacity: 0.8;
+}
+
+.modal-window {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  height: 100vh;
+  width: 375px;
+  max-width: 50vw;
+  background-color: silver;
+  border-radius: 6px 0 0 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
