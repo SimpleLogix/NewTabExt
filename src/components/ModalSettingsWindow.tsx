@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Widget } from "../utils/Widget";
-import { clear } from "console";
+import ColorPicker from "./ColorPicker";
 
 type Props = {
   isOpen: boolean;
@@ -17,11 +17,11 @@ const ModalSettingsWindow = ({
   widgets,
 }: Props) => {
   const [widgetName, setWidgetName] = useState("");
-  const [widgetOpenStatus, setWidgetOpenStatus] = useState<boolean[]>([]); // [false, false, false, false, false, false, false, false
-  const [isAddWidgetOpen, setIsAddWidgetOpen] = useState(false);
+  const [widgetOpenStatus, setWidgetOpenStatus] = useState<boolean[]>([]);
 
   useEffect(() => {
     const widgetOpenStatus = widgets.map((widget, i) => false);
+    widgetOpenStatus.push(false); // represents the add widget button
     setWidgetOpenStatus(widgetOpenStatus);
   }, [widgets]);
 
@@ -51,8 +51,10 @@ const ModalSettingsWindow = ({
 
   const handleAddWidgetClick = (event: React.MouseEvent) => {
     event.stopPropagation();
+    const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
+    newWidgetOpenStatus[-1] = true;
+    setWidgetOpenStatus(newWidgetOpenStatus);
   };
-
 
   return (
     <div
@@ -73,6 +75,7 @@ const ModalSettingsWindow = ({
               <i
                 className="material-symbols-outlined action"
                 onClick={(event: React.MouseEvent) => {
+                  // OPEN TO EDIT
                   event.stopPropagation();
                   const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
                   newWidgetOpenStatus[i] = true;
@@ -87,17 +90,28 @@ const ModalSettingsWindow = ({
           </div>
         );
       })}
+
       <div
-        className={`card center add-widget ${isAddWidgetOpen ? "open" : ""}`}
+        className={`card center add-widget ${
+          widgetOpenStatus[-1] ? "open" : ""
+        }`}
         onClick={handleAddWidgetClick}
       >
-        +
+        {widgetOpenStatus[-1] ? (
+          <form onSubmit={handleSubmit} className="">
+            <div>
+              <i className={`fa-solid fa-globe`}></i>
+              <input value={widgetName} onChange={handleInputChange}></input>
+              <ColorPicker></ColorPicker>
+            </div>
+
+            <button type="submit">Add Link</button>
+          </form>
+        ) : (
+          "+"
+        )}
       </div>
-      <form onSubmit={handleSubmit} className="center column">
-        <input value={widgetName} onChange={handleInputChange}></input>
-        <button type="submit">Add Widget</button>
-        <button onClick={handleClearClick}>Clear</button>
-      </form>
+      <button onClick={handleClearClick}>Clear</button>
     </div>
   );
 };
