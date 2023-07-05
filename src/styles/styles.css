@@ -150,7 +150,15 @@ i {
 
 input {
   width: 70%;
+  border: none;
+  border-bottom: 1px solid #1e1e1e;
+  background: var(--grey);
+  margin: 4px;
+  font-style: italic;
+}
 
+input:focus {
+  outline: none;
 }
 
 form>button {
@@ -168,14 +176,14 @@ form>button:hover {
 
 form>div {
   position: absolute;
-  bottom: 4px;
+  bottom: 0;
   left: 4px;
   display: flex;
   gap: 4px;
   align-items: center;
 }
 
-.color-picker {
+.color-picker-button {
   width: 40px;
   height: 20px;
   border-radius: 4px;
@@ -196,8 +204,8 @@ form>div {
   z-index: 2;
   bottom: unset;
   right: unset;
-  top: -4px;
-  left: 10px;
+  top: 31px;
+  left: -16px;
 }
 
 .swatch {
@@ -207,4 +215,8 @@ form>div {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .1);
   display: inline-block;
   cursor: pointer;
+}
+
+.color-picker {
+  color: whitesmoke;
 }

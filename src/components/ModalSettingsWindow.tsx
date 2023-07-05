@@ -100,7 +100,6 @@ const ModalSettingsWindow = ({
         {widgetOpenStatus[-1] ? (
           <form onSubmit={handleSubmit} className="">
             <div>
-              <i className={`fa-solid fa-globe`}></i>
               <input value={widgetName} onChange={handleInputChange}></input>
               <ColorPicker></ColorPicker>
             </div>

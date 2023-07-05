@@ -42,7 +42,7 @@ class ColorPicker extends React.Component<{}, ColorPickerState> {
     return (
       <div>
         <div className="swatch" onClick={this.handleClick}>
-          <div className="color-picker" style={styles.color} />
+          <div className="color-picker-button" style={styles.color} />
         </div>
         {this.state.displayColorPicker ? (
           <div className="popover">
@@ -50,6 +50,7 @@ class ColorPicker extends React.Component<{}, ColorPickerState> {
             <SketchPicker
               color={this.state.color}
               onChange={this.handleChange}
+              className="color-picker"
             />
           </div>
         ) : null}
