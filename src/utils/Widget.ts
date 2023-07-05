@@ -1,8 +1,8 @@
 export interface Widget {
     id: string;
-    name: string;
     link: string;
     icon: string;
+    color: string;
 }
 
 export const fetchWidgetsFromStorage = () => {
