@@ -54,9 +54,7 @@ const ModalSettingsWindow = ({
         }
         const urlObj = new URL(url);
         const hostname =
-          urlObj.host.split(".")[0] === "www"
-            ? urlObj.host.split(".")[1]
-            : urlObj.host.split(".")[0];
+          urlObj.host.split(".")[urlObj.host.split(".").length - 2];
         icon = hostname;
       } catch (error) {
         const regex = /^(?:www\.)?([^./]+(?:\.[^./]+)?)/;
