@@ -2,7 +2,6 @@ import { RGBColor } from "react-color";
 
 export interface Widget {
     id: string;
-    name: string;
     link: string;
     icon: string;
     color: RGBColor;

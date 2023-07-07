@@ -19,6 +19,7 @@
 
 .grid-icon {
     font-size: 400%;
+    border: 1px solid red;
 }
 
 .grid>div {
