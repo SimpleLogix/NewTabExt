@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Widget } from "../utils/Widget";
 import ColorPicker from "./ColorPicker";
+import { RGBColor } from "react-color";
 
 type Props = {
   isOpen: boolean;
@@ -16,7 +17,14 @@ const ModalSettingsWindow = ({
   clearWidgets,
   widgets,
 }: Props) => {
-  const [widgetName, setWidgetName] = useState("");
+  const [newWidget, setNewWidget] = useState<Widget>({
+    name: "",
+    id: "",
+    link: "",
+    icon: "",
+    color: randomColor(),
+  }); // widget being added
+  const [widgetName, setWidgetName] = useState(""); // widget being added
   const [widgetOpenStatus, setWidgetOpenStatus] = useState<boolean[]>([]);
 
   useEffect(() => {
@@ -25,22 +33,28 @@ const ModalSettingsWindow = ({
     setWidgetOpenStatus(widgetOpenStatus);
   }, [widgets]);
 
+  // useEffect(() => {
+  //   setNewWidget({
+  //     name: "",
+  //     id: "",
+  //     link: "",
+  //     icon: "",
+  //     color: randomColor(),
+  //   });
+  // }, []); // run once to generate empty widget
+
   const handleModalClick = (event: React.MouseEvent) => {
     event.stopPropagation();
   };
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setWidgetName(event.target.value);
+    setNewWidget({ ...newWidget, name: event.target.value });
   };
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault(); // prevent refresh on submit
     //todo- check if widget name is unique and other validations
     if (widgets.length < 8) {
-      addNewWidget({
-        name: widgetName,
-        id: widgetName,
-        link: "",
-        icon: widgetName,
-      });
+      addNewWidget(newWidget);
       setWidgetName("");
     }
   };
@@ -54,6 +68,10 @@ const ModalSettingsWindow = ({
     const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
     newWidgetOpenStatus[-1] = true;
     setWidgetOpenStatus(newWidgetOpenStatus);
+  };
+
+  const handleColorPickerChange = (color: RGBColor) => {
+    setNewWidget({ ...newWidget, color: color });
   };
 
   return (
@@ -101,7 +119,10 @@ const ModalSettingsWindow = ({
           <form onSubmit={handleSubmit} className="">
             <div>
               <input value={widgetName} onChange={handleInputChange}></input>
-              <ColorPicker></ColorPicker>
+              <ColorPicker
+                color={newWidget.color}
+                onChange={handleColorPickerChange}
+              ></ColorPicker>
             </div>
 
             <button type="submit">Add Link</button>
@@ -116,3 +137,12 @@ const ModalSettingsWindow = ({
 };
 
 export default ModalSettingsWindow;
+
+const randomColor = (): RGBColor => {
+  return {
+    r: Math.floor(Math.random() * 255),
+    g: Math.floor(Math.random() * 255),
+    b: Math.floor(Math.random() * 255),
+    a: 1,
+  };
+};

@@ -2,20 +2,18 @@ import React from "react";
 import { RGBColor, SketchPicker } from "react-color";
 import reactCSS from "reactcss";
 
-interface ColorPickerState {
-  displayColorPicker: boolean;
+interface ColorPickerProps {
   color: RGBColor;
+  onChange: (color: RGBColor) => void;
 }
 
-class ColorPicker extends React.Component<{}, ColorPickerState> {
+interface ColorPickerState {
+  displayColorPicker: boolean;
+}
+
+class ColorPicker extends React.Component<ColorPickerProps, ColorPickerState> {
   state: ColorPickerState = {
     displayColorPicker: false,
-    color: {
-      r: 241,
-      g: 112,
-      b: 19,
-      a: 1,
-    },
   };
 
   handleClick = () => {
@@ -27,14 +25,14 @@ class ColorPicker extends React.Component<{}, ColorPickerState> {
   };
 
   handleChange = (color: any) => {
-    this.setState({ color: color.rgb });
+    this.props.onChange(color.rgb);
   };
 
   render() {
     const styles = reactCSS({
       default: {
         color: {
-          background: `rgba(${this.state.color.r}, ${this.state.color.g}, ${this.state.color.b}, ${this.state.color.a})`,
+          background: `rgba(${this.props.color.r}, ${this.props.color.g}, ${this.props.color.b}, ${this.props.color.a})`,
         },
       },
     });
@@ -48,7 +46,7 @@ class ColorPicker extends React.Component<{}, ColorPickerState> {
           <div className="popover">
             <div className="cover" onClick={this.handleClose} />
             <SketchPicker
-              color={this.state.color}
+              color={this.props.color}
               onChange={this.handleChange}
               className="color-picker"
             />
