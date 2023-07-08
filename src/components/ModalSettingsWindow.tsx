@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Widget } from "../utils/Widget";
+import { Widget, saveWidgetsToStorage } from "../utils/Widget";
 import ColorPicker from "./ColorPicker";
 import { RGBColor } from "react-color";
+import { extractDomainFromUrl } from "../utils/utils";
 
 type Props = {
   isOpen: boolean;
@@ -9,6 +10,7 @@ type Props = {
   widgets: Widget[];
   addNewWidget: (widget: Widget) => void;
   clearWidgets: () => void;
+  setWidgets: (widgets: Widget[]) => void;
 };
 
 const ModalSettingsWindow = ({
@@ -16,6 +18,7 @@ const ModalSettingsWindow = ({
   addNewWidget,
   clearWidgets,
   widgets,
+  setWidgets,
 }: Props) => {
   const [newWidget, setNewWidget] = useState<Widget>({
     id: "",
@@ -31,55 +34,21 @@ const ModalSettingsWindow = ({
     setWidgetOpenStatus(widgetOpenStatus);
   }, [widgets]);
 
-  // useEffect(() => {
-  //   setNewWidget({
-  //     name: "",
-  //     id: "",
-  //     link: "",
-  //     icon: "",
-  //     color: randomColor(),
-  //   });
-  // }, []); // run once to generate empty widget
-
   const handleModalClick = (event: React.MouseEvent) => {
     event.stopPropagation();
   };
   // update widget name when user types
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNewWidget((prevWidget) => ({
-      ...prevWidget,
-      link: event.target.value,
-    }));
+    setNewWidget({ ...newWidget, link: event.target.value });
   };
-  //
+  // validate url and save link
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault(); // prevent refresh on submit
     //todo- check if widget name is unique and other validations
     if (widgets.length < 8) {
       // extract domain from url
-      let icon = "";
-      try {
-        let url: string = newWidget.link;
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-          url = "http://" + url;
-        }
-        const urlObj = new URL(url);
-        const hostname =
-          urlObj.host.split(".")[urlObj.host.split(".").length - 2];
-        icon = hostname;
-      } catch (error) {
-        const regex = /^(?:www\.)?([^./]+(?:\.[^./]+)?)/;
-        const match = newWidget.link.match(regex);
-        const domain = match ? match[1] : "";
-        icon = domain;
-      }
-      const widget: Widget = {
-        link: newWidget.link,
-        icon: icon,
-        color: newWidget.color,
-        id: newWidget.link,
-      };
-      addNewWidget(widget);
+      let icon = extractDomainFromUrl(newWidget.link);
+      addNewWidget({ ...newWidget, icon: icon });
       setNewWidget({ id: "", icon: "", link: "", color: randomColor() });
       const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
       setWidgetOpenStatus(newWidgetOpenStatus);
@@ -102,6 +71,45 @@ const ModalSettingsWindow = ({
     setNewWidget({ ...newWidget, color: color });
   };
 
+  const handleSettingsClick = (event: React.MouseEvent, index: number) => {
+    event.stopPropagation();
+    const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
+    newWidgetOpenStatus[index] = true;
+    setWidgetOpenStatus(newWidgetOpenStatus);
+  };
+
+  const handleDeleteClick = (event: React.MouseEvent, index: number) => {
+    event.stopPropagation();
+    const newWidgets = [...widgets];
+    newWidgets.splice(index, 1);
+    saveWidgetsToStorage(newWidgets);
+    setWidgets(newWidgets);
+  };
+
+  const handleWidgetMoveUp = (event: React.MouseEvent, index: number) => {
+    event.stopPropagation();
+    if (index > 0) {
+      const newWidgets = [...widgets];
+      const temp = newWidgets[index - 1];
+      newWidgets[index - 1] = newWidgets[index];
+      newWidgets[index] = temp;
+      saveWidgetsToStorage(newWidgets);
+      setWidgets(newWidgets);
+    }
+  };
+
+  const handleWidgetMoveDown = (event: React.MouseEvent, index: number) => {
+    event.stopPropagation();
+    if (index < widgets.length - 1) {
+      const newWidgets = [...widgets];
+      const temp = newWidgets[index + 1];
+      newWidgets[index + 1] = newWidgets[index];
+      newWidgets[index] = temp;
+      saveWidgetsToStorage(newWidgets);
+      setWidgets(newWidgets);
+    }
+  };
+
   return (
     <div
       className={`${isOpen ? "modal-window" : "hidden"}`}
@@ -117,21 +125,30 @@ const ModalSettingsWindow = ({
               {widget.link}
             </div>
             <div className="link-actions">
-              <i className="material-symbols-outlined action">delete</i>
               <i
                 className="material-symbols-outlined action"
-                onClick={(event: React.MouseEvent) => {
-                  // OPEN TO EDIT
-                  event.stopPropagation();
-                  const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
-                  newWidgetOpenStatus[i] = true;
-                  setWidgetOpenStatus(newWidgetOpenStatus);
-                }}
+                onClick={(event) => handleDeleteClick(event, i)}
+              >
+                delete
+              </i>
+              <i
+                className="material-symbols-outlined action"
+                onClick={(event) => handleSettingsClick(event, i)}
               >
                 settings
               </i>
-              <i className="material-symbols-outlined action">north</i>
-              <i className="material-symbols-outlined action">south</i>
+              <i
+                className="material-symbols-outlined action"
+                onClick={(event) => handleWidgetMoveUp(event, i)}
+              >
+                north
+              </i>
+              <i
+                className="material-symbols-outlined action"
+                onClick={(event) => handleWidgetMoveDown(event, i)}
+              >
+                south
+              </i>
             </div>
           </div>
         );

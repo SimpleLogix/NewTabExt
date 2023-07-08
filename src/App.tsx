@@ -43,6 +43,7 @@ function App() {
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         widgets={widgets}
+        setWidgets={setWidgets}
         clearWidgets={clearWidgets}
         addNewWidget={addNewWidget}
       ></ModalSettingsWindow>

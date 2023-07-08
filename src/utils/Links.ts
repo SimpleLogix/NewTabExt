@@ -1,3 +1,4 @@
+// companies that exist in the font awesome icon set
 export const COMPANIES: string[] = [
     "500px",
     "accessible-icon",
@@ -437,3 +438,8 @@ export const COMPANIES: string[] = [
     "youtube-square",
     "zhihu"
 ];
+
+// custom added companies with svg icons
+export const CUSTOM_COMPANIES: string[] = [
+    "hulu",
+]
