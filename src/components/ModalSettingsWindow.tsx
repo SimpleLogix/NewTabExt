@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Widget, saveWidgetsToStorage } from "../utils/Widget";
 import ColorPicker from "./ColorPicker";
 import { RGBColor } from "react-color";
-import { extractDomainFromUrl } from "../utils/utils";
+import { RGBColorToCSS, extractDomainFromUrl } from "../utils/utils";
 
 type Props = {
   isOpen: boolean;
@@ -26,7 +26,10 @@ const ModalSettingsWindow = ({
     icon: "",
     color: randomColor(),
   }); // widget being added
+  // using temp state to keep track of which widgets are open/links are being edited
+  // avoid refreshing state until user stops typing/ submits
   const [widgetOpenStatus, setWidgetOpenStatus] = useState<boolean[]>([]);
+  const [widgetLinks, setWidgetLinks] = useState<string[]>([]); // links being edited
 
   useEffect(() => {
     const widgetOpenStatus = widgets.map((widget, i) => false);
@@ -34,14 +37,22 @@ const ModalSettingsWindow = ({
     setWidgetOpenStatus(widgetOpenStatus);
   }, [widgets]);
 
+  useEffect(() => {
+    const widgetLinks = widgets.map((widget) => widget.link);
+    setWidgetLinks(widgetLinks);
+  }, [widgets]); // re-render when widgets change
+
   const handleModalClick = (event: React.MouseEvent) => {
     event.stopPropagation();
+    // close all widgets
+    const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
+    setWidgetOpenStatus(newWidgetOpenStatus);
   };
   // update widget name when user types
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setNewWidget({ ...newWidget, link: event.target.value });
   };
-  // validate url and save link
+  // validate url and save link - submit new widget to be added
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault(); // prevent refresh on submit
     //todo- check if widget name is unique and other validations
@@ -55,13 +66,9 @@ const ModalSettingsWindow = ({
     }
   };
 
-  const handleClearClick = (event: React.MouseEvent) => {
-    event.preventDefault();
-    clearWidgets();
-  };
-
   const handleAddWidgetClick = (event: React.MouseEvent) => {
     event.stopPropagation();
+    if (widgets.length >= 8) return; // max 8 widgets
     const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
     newWidgetOpenStatus[-1] = true;
     setWidgetOpenStatus(newWidgetOpenStatus);
@@ -74,7 +81,7 @@ const ModalSettingsWindow = ({
   const handleSettingsClick = (event: React.MouseEvent, index: number) => {
     event.stopPropagation();
     const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
-    newWidgetOpenStatus[index] = true;
+    newWidgetOpenStatus[index] = !widgetOpenStatus[index];
     setWidgetOpenStatus(newWidgetOpenStatus);
   };
 
@@ -110,6 +117,32 @@ const ModalSettingsWindow = ({
     }
   };
 
+  const handleLinkEdit = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
+    event.stopPropagation();
+    const newWidgetLinks = [...widgetLinks];
+    newWidgetLinks[index] = event.target.value;
+    setWidgetLinks(newWidgetLinks);
+  };
+
+  const handleSubmitLinkEdit = (event: React.FormEvent, index: number) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const editedWidgets = [...widgets];
+    editedWidgets[index].link = widgetLinks[index];
+    saveWidgetsToStorage(editedWidgets);
+  };
+
+  const saveLinkEdits = () => {
+    const newWidgets = widgets.map((widget, i) => {
+      return { ...widget, link: widgetLinks[i] };
+    });
+    saveWidgetsToStorage(newWidgets);
+    setWidgets(newWidgets);
+  };
+
   return (
     <div
       className={`${isOpen ? "modal-window" : "hidden"}`}
@@ -119,23 +152,43 @@ const ModalSettingsWindow = ({
 
       {widgets.map((widget, i) => {
         return (
-          <div key={i} className={`card ${widgetOpenStatus[i] ? "open" : ""}`}>
+          <div
+            key={i}
+            className={`card ${widgetOpenStatus[i] ? "open" : ""}`}
+            style={{
+              backgroundColor: RGBColorToCSS({ ...widget.color, a: 0.25 }),
+            }}
+            onClick={(event) => handleSettingsClick(event, i)}
+          >
             <div className="link-text">
-              <i className={`fa-brands fa-${widget.icon}`}></i>
-              {widget.link}
+              <i
+                className={`fa-brands fa-${widget.icon}`}
+                style={{ color: RGBColorToCSS(widget.color) }}
+              ></i>
+              <form onSubmit={(event) => handleSubmitLinkEdit(event, i)}>
+                <input
+                  value={widgetLinks[i]}
+                  onClick={(event) => event.stopPropagation()}
+                  onChange={(event) => handleLinkEdit(event, i)}
+                  readOnly={!widgetOpenStatus[i]}
+                ></input>
+              </form>
+              <div
+                className={` ${widgetOpenStatus[i] ? "edit-color" : "invis"} `}
+              >
+                <ColorPicker
+                  color={widget.color}
+                  onChange={handleColorPickerChange}
+                ></ColorPicker>
+              </div>
             </div>
+
             <div className="link-actions">
               <i
-                className="material-symbols-outlined action"
+                className="material-symbols-outlined action red"
                 onClick={(event) => handleDeleteClick(event, i)}
               >
-                delete
-              </i>
-              <i
-                className="material-symbols-outlined action"
-                onClick={(event) => handleSettingsClick(event, i)}
-              >
-                settings
+                {widgetOpenStatus[i] ? "delete" : ""}
               </i>
               <i
                 className="material-symbols-outlined action"
@@ -179,7 +232,8 @@ const ModalSettingsWindow = ({
           "+"
         )}
       </div>
-      <button onClick={handleClearClick}>Clear</button>
+      {/* <button onClick={handleClearClick}>Clear</button> */}
+      <h1>Background</h1>
     </div>
   );
 };

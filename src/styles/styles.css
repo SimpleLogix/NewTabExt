@@ -1,6 +1,8 @@
 :root {
+  --black-light: #2f3542;
   --red: #c0392b;
-  --grey: rgb(236, 240, 241);
+  --grey: #a4b0be;
+  --light-text: #f5f6fa;
 }
 
 
@@ -74,12 +76,12 @@ i {
   height: 100vh;
   width: 375px;
   max-width: 40vw;
-  background-color: #fefdfb;
-  border-radius: 6px 0 0 6px;
+  background-color: var(--black-light);
+  /* border-radius: 6px 0 0 6px; */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   justify-content: flex-start;
   overflow: auto;
-  color: #1e1e1e;
+  color: var(--light-text);
 }
 
 .red {
@@ -88,13 +90,13 @@ i {
 
 .card {
   margin: 8px;
-  background-color: var(--grey);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.125);
-  border: 1px solid black;
-  width: 93%;
+  border: 1px solid rgba(245, 246, 250, 0.25);
+  width: 95%;
   height: 48px;
   position: relative;
   transition: height 0.3s ease-in-out;
+  cursor: pointer;
 }
 
 .open {
@@ -119,7 +121,28 @@ i {
   font-style: italic;
   display: flex;
   gap: 4px;
-  align-items: center;
+  align-items: flex-end;
+  width: 90%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.link-text>form>input {
+  display: flex;
+  border: none;
+  color: var(--light-text);
+  background-color: transparent;
+  font-size: 10px;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link-text>form {
+  width: 100%;
+  transform: translateY(2px);
+  display: flex;
+  align-items: flex-end;
 }
 
 .link-text>i {
@@ -140,12 +163,29 @@ i {
 }
 
 .add-widget {
+  background-color: rgba(164, 176, 190, 0.3);
   user-select: none;
   cursor: pointer;
 }
 
 .add-widget.open {
   cursor: default;
+}
+
+.add-widget:hover {
+  background-color: rgba(164, 176, 190, 0.5);
+}
+
+.edit-color {
+  opacity: 1;
+  transition: opacity 1 ease-in-out;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.invis {
+  opacity: 0.1;
 }
 
 input {
