@@ -6,16 +6,25 @@ import {
   fetchWidgetsFromStorage,
   saveWidgetsToStorage,
 } from "./utils/Widget";
+import { RGBColor } from "react-color";
 
 function App() {
   //? States
   const [isOpen, setIsOpen] = useState(false);
   const [widgets, setWidgets] = useState<Widget[]>([]);
+  const [widgetColors, setWidgetColors] = useState<RGBColor[]>([]);
 
   //? useEffects
   useEffect(() => {
     const widgets = fetchWidgetsFromStorage();
     setWidgets(widgets);
+  }, []); // inital fetch from storage
+
+  useEffect(() => {
+    const widgets = fetchWidgetsFromStorage();
+    setWidgets(widgets);
+    // initialize widgetColors here
+    setWidgetColors(widgets.map((widget) => widget.color));
   }, []); // inital fetch from storage
 
   //? Event Handlers
@@ -37,14 +46,15 @@ function App() {
 
   return (
     <div className="root center" onClick={handleRootClick}>
-      <WidgetGrid widgets={widgets}></WidgetGrid>
+      <WidgetGrid widgets={widgets} widgetColors={widgetColors}></WidgetGrid>
 
       <ModalSettingsWindow
         isOpen={isOpen}
         setIsOpen={setIsOpen}
         widgets={widgets}
         setWidgets={setWidgets}
-        clearWidgets={clearWidgets}
+        widgetColors={widgetColors}
+        setWidgetColors={setWidgetColors}
         addNewWidget={addNewWidget}
       ></ModalSettingsWindow>
 

@@ -12,6 +12,15 @@ interface ColorPickerState {
 }
 
 class ColorPicker extends React.Component<ColorPickerProps, ColorPickerState> {
+  static defaultProps = {
+    color: {
+      r: 0,
+      g: 0,
+      b: 0,
+      a: 1,
+    },
+  };
+
   state: ColorPickerState = {
     displayColorPicker: false,
   };
@@ -38,7 +47,7 @@ class ColorPicker extends React.Component<ColorPickerProps, ColorPickerState> {
     });
 
     return (
-      <div>
+      <div className="color-picker-parent">
         <div className="swatch" onClick={this.handleClick}>
           <div className="color-picker-button" style={styles.color} />
         </div>

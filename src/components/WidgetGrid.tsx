@@ -7,10 +7,11 @@ import { RGBColor } from "react-color";
 
 type Props = {
   widgets: Widget[];
+  widgetColors: RGBColor[];
 };
 
 //? Group of Widgets
-const WidgetGrid = ({ widgets }: Props) => {
+const WidgetGrid = ({ widgets, widgetColors }: Props) => {
   const [hoveredIndex, setHoveredIndex] = useState(-1);
 
   const handleMouseEnter = (index: number) => {

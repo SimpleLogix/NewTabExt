@@ -9,16 +9,18 @@ type Props = {
   setIsOpen: (isOpen: boolean) => void;
   widgets: Widget[];
   addNewWidget: (widget: Widget) => void;
-  clearWidgets: () => void;
   setWidgets: (widgets: Widget[]) => void;
+  widgetColors: RGBColor[];
+  setWidgetColors: (widgetColors: RGBColor[]) => void;
 };
 
 const ModalSettingsWindow = ({
   isOpen,
   addNewWidget,
-  clearWidgets,
   widgets,
   setWidgets,
+  widgetColors,
+  setWidgetColors,
 }: Props) => {
   const [newWidget, setNewWidget] = useState<Widget>({
     id: "",
@@ -29,8 +31,9 @@ const ModalSettingsWindow = ({
   // using temp state to keep track of which widgets are open/links are being edited
   // avoid refreshing state until user stops typing/ submits
   const [widgetOpenStatus, setWidgetOpenStatus] = useState<boolean[]>([]);
+  //? add states to edit widget link/color without refreshing entire parent state
   const [widgetLinks, setWidgetLinks] = useState<string[]>([]); // links being edited
-
+  // const [widgetColors, setWidgetColors] = useState<RGBColor[]>([]); // colors being edited
   useEffect(() => {
     const widgetOpenStatus = widgets.map((widget, i) => false);
     widgetOpenStatus.push(false); // represents the add widget button
@@ -38,9 +41,15 @@ const ModalSettingsWindow = ({
   }, [widgets]);
 
   useEffect(() => {
-    const widgetLinks = widgets.map((widget) => widget.link);
+    const widgetLinks = widgets.map((widget) => widget.link || "");
     setWidgetLinks(widgetLinks);
   }, [widgets]); // re-render when widgets change
+
+  // useEffect(() => {
+  //   if (widgets.length === 0) return;
+  //   const colors = widgets.map((widget) => widget.color);
+  //   setWidgetColors(colors);
+  // }, [widgets]);
 
   const handleModalClick = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -135,14 +144,6 @@ const ModalSettingsWindow = ({
     saveWidgetsToStorage(editedWidgets);
   };
 
-  const saveLinkEdits = () => {
-    const newWidgets = widgets.map((widget, i) => {
-      return { ...widget, link: widgetLinks[i] };
-    });
-    saveWidgetsToStorage(newWidgets);
-    setWidgets(newWidgets);
-  };
-
   return (
     <div
       className={`${isOpen ? "modal-window" : "hidden"}`}
@@ -167,7 +168,7 @@ const ModalSettingsWindow = ({
               ></i>
               <form onSubmit={(event) => handleSubmitLinkEdit(event, i)}>
                 <input
-                  value={widgetLinks[i]}
+                  value={widgetLinks[i] || ""}
                   onClick={(event) => event.stopPropagation()}
                   onChange={(event) => handleLinkEdit(event, i)}
                   readOnly={!widgetOpenStatus[i]}
@@ -175,10 +176,18 @@ const ModalSettingsWindow = ({
               </form>
               <div
                 className={` ${widgetOpenStatus[i] ? "edit-color" : "invis"} `}
+                onClick={(event) => {
+                  event.stopPropagation();
+                }}
               >
                 <ColorPicker
-                  color={widget.color}
-                  onChange={handleColorPickerChange}
+                  color={widgetColors[i]}
+                  onChange={(color) => {
+                    const newWidgets = [...widgets];
+                    newWidgets[i].color = color;
+                    saveWidgetsToStorage(newWidgets);
+                    setWidgetColors({ ...widgetColors, [i]: color });
+                  }}
                 ></ColorPicker>
               </div>
             </div>
