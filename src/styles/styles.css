@@ -124,6 +124,8 @@ i {
   align-items: flex-end;
   width: 90%;
   height: 100%;
+  border: 1px solid green;
+
 }
 
 .link-text>form>input {
@@ -133,11 +135,15 @@ i {
   background-color: transparent;
   font-size: 10px;
   font-style: italic;
-  overflow: hidden;
+  letter-spacing: 0.22px;
   text-overflow: ellipsis;
+  width: auto;
+  border: 1px solid blue;
+
 }
 
 .link-text>form {
+  border: 1px solid red;
   width: 100%;
   transform: translateY(2px);
   display: flex;
