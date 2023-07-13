@@ -124,7 +124,6 @@ i {
   align-items: flex-end;
   width: 90%;
   height: 100%;
-  border: 1px solid green;
 
 }
 
@@ -137,13 +136,11 @@ i {
   font-style: italic;
   letter-spacing: 0.22px;
   text-overflow: ellipsis;
-  width: auto;
-  border: 1px solid blue;
+  width: 54%;
 
 }
 
 .link-text>form {
-  border: 1px solid red;
   width: 100%;
   transform: translateY(2px);
   display: flex;

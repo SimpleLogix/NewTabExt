@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Widget, saveWidgetsToStorage } from "../utils/Widget";
-import ColorPicker from "./ColorPicker";
+import { Widget } from "../utils/Widget";
 import { RGBColor } from "react-color";
-import { RGBColorToCSS, extractDomainFromUrl } from "../utils/utils";
+import Card from "./Card";
+import AddCard from "./AddCard";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from "react-beautiful-dnd";
 
 type Props = {
   isOpen: boolean;
@@ -22,12 +28,6 @@ const ModalSettingsWindow = ({
   widgetColors,
   setWidgetColors,
 }: Props) => {
-  const [newWidget, setNewWidget] = useState<Widget>({
-    id: "",
-    link: "",
-    icon: "",
-    color: randomColor(),
-  }); // widget being added
   // using temp state to keep track of which widgets are open/links are being edited
   // avoid refreshing state until user stops typing/ submits
   const [widgetOpenStatus, setWidgetOpenStatus] = useState<boolean[]>([]);
@@ -45,11 +45,12 @@ const ModalSettingsWindow = ({
     setWidgetLinks(widgetLinks);
   }, [widgets]); // re-render when widgets change
 
-  // useEffect(() => {
-  //   if (widgets.length === 0) return;
-  //   const colors = widgets.map((widget) => widget.color);
-  //   setWidgetColors(colors);
-  // }, [widgets]);
+  useEffect(() => {
+    const colors = widgets.map(
+      (widget) => widget.color || { r: 0, g: 0, b: 0, a: 1 }
+    );
+    setWidgetColors(colors);
+  }, [widgets, setWidgetColors]); // re-render when widgets change
 
   const handleModalClick = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -57,203 +58,78 @@ const ModalSettingsWindow = ({
     const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
     setWidgetOpenStatus(newWidgetOpenStatus);
   };
-  // update widget name when user types
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNewWidget({ ...newWidget, link: event.target.value });
-  };
-  // validate url and save link - submit new widget to be added
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault(); // prevent refresh on submit
-    //todo- check if widget name is unique and other validations
-    if (widgets.length < 8) {
-      // extract domain from url
-      let icon = extractDomainFromUrl(newWidget.link);
-      addNewWidget({ ...newWidget, icon: icon });
-      setNewWidget({ id: "", icon: "", link: "", color: randomColor() });
-      const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
-      setWidgetOpenStatus(newWidgetOpenStatus);
-    }
+
+  const handleOnDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const items = Array.from(widgets);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setWidgets(items);
   };
 
-  const handleAddWidgetClick = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    if (widgets.length >= 8) return; // max 8 widgets
-    const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
-    newWidgetOpenStatus[-1] = true;
-    setWidgetOpenStatus(newWidgetOpenStatus);
-  };
+  useEffect(() => {
+    console.log("Droppable mounted");
 
-  const handleColorPickerChange = (color: RGBColor) => {
-    setNewWidget({ ...newWidget, color: color });
-  };
-
-  const handleSettingsClick = (event: React.MouseEvent, index: number) => {
-    event.stopPropagation();
-    const newWidgetOpenStatus = widgetOpenStatus.map(() => false);
-    newWidgetOpenStatus[index] = !widgetOpenStatus[index];
-    setWidgetOpenStatus(newWidgetOpenStatus);
-  };
-
-  const handleDeleteClick = (event: React.MouseEvent, index: number) => {
-    event.stopPropagation();
-    const newWidgets = [...widgets];
-    newWidgets.splice(index, 1);
-    saveWidgetsToStorage(newWidgets);
-    setWidgets(newWidgets);
-  };
-
-  const handleWidgetMoveUp = (event: React.MouseEvent, index: number) => {
-    event.stopPropagation();
-    if (index > 0) {
-      const newWidgets = [...widgets];
-      const temp = newWidgets[index - 1];
-      newWidgets[index - 1] = newWidgets[index];
-      newWidgets[index] = temp;
-      saveWidgetsToStorage(newWidgets);
-      setWidgets(newWidgets);
-    }
-  };
-
-  const handleWidgetMoveDown = (event: React.MouseEvent, index: number) => {
-    event.stopPropagation();
-    if (index < widgets.length - 1) {
-      const newWidgets = [...widgets];
-      const temp = newWidgets[index + 1];
-      newWidgets[index + 1] = newWidgets[index];
-      newWidgets[index] = temp;
-      saveWidgetsToStorage(newWidgets);
-      setWidgets(newWidgets);
-    }
-  };
-
-  const handleLinkEdit = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    index: number
-  ) => {
-    event.stopPropagation();
-    const newWidgetLinks = [...widgetLinks];
-    newWidgetLinks[index] = event.target.value;
-    setWidgetLinks(newWidgetLinks);
-  };
-
-  const handleSubmitLinkEdit = (event: React.FormEvent, index: number) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const editedWidgets = [...widgets];
-    editedWidgets[index].link = widgetLinks[index];
-    saveWidgetsToStorage(editedWidgets);
-  };
+    return () => {
+      console.log("Droppable unmounted");
+    };
+  }, []);
 
   return (
     <div
-      className={`${isOpen ? "modal-window" : "hidden"}`}
+      className={isOpen ? "modal-window" : "hidden"}
       onClick={handleModalClick}
     >
       <h1>Links</h1>
 
-      {widgets.map((widget, i) => {
-        return (
-          <div
-            key={i}
-            className={`card ${widgetOpenStatus[i] ? "open" : ""}`}
-            style={{
-              backgroundColor: RGBColorToCSS({ ...widget.color, a: 0.25 }),
-            }}
-            onClick={(event) => handleSettingsClick(event, i)}
-          >
-            <div className="link-text">
-              <i
-                className={`fa-brands fa-${widget.icon}`}
-                style={{ color: RGBColorToCSS(widget.color) }}
-              ></i>
-              <form onSubmit={(event) => handleSubmitLinkEdit(event, i)}>
-                <input
-                  value={widgetLinks[i] || ""}
-                  onClick={(event) => event.stopPropagation()}
-                  onChange={(event) => handleLinkEdit(event, i)}
-                  readOnly={!widgetOpenStatus[i]}
-                ></input>
-              </form>
-              <div
-                className={` ${widgetOpenStatus[i] ? "edit-color" : "invis"} `}
-                onClick={(event) => {
-                  event.stopPropagation();
-                }}
-              >
-                <ColorPicker
-                  color={widgetColors[i]}
-                  onChange={(color) => {
-                    const newWidgets = [...widgets];
-                    newWidgets[i].color = color;
-                    saveWidgetsToStorage(newWidgets);
-                    setWidgetColors({ ...widgetColors, [i]: color });
-                  }}
-                ></ColorPicker>
-              </div>
+      <DragDropContext onDragEnd={handleOnDragEnd}>
+        <Droppable droppableId="widgets">
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps}>
+              {widgets.map((widget, index) => (
+                <Draggable
+                  key={widget.link}
+                  draggableId={String(widget.link)}
+                  index={index}
+                >
+                  {(provided) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                    >
+                      <Card
+                        i={index}
+                        widget={widget}
+                        widgetOpenStatus={widgetOpenStatus}
+                        widgetLinks={widgetLinks}
+                        widgetColors={widgetColors}
+                        setWidgetColors={setWidgetColors}
+                        setWidgetLinks={setWidgetLinks}
+                        setWidgetOpenStatus={setWidgetOpenStatus}
+                        widgets={widgets}
+                        setWidgets={setWidgets}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
             </div>
+          )}
+        </Droppable>
+      </DragDropContext>
 
-            <div className="link-actions">
-              <i
-                className="material-symbols-outlined action red"
-                onClick={(event) => handleDeleteClick(event, i)}
-              >
-                {widgetOpenStatus[i] ? "delete" : ""}
-              </i>
-              <i
-                className="material-symbols-outlined action"
-                onClick={(event) => handleWidgetMoveUp(event, i)}
-              >
-                north
-              </i>
-              <i
-                className="material-symbols-outlined action"
-                onClick={(event) => handleWidgetMoveDown(event, i)}
-              >
-                south
-              </i>
-            </div>
-          </div>
-        );
-      })}
+      <AddCard
+        widgets={widgets}
+        widgetOpenStatus={widgetOpenStatus}
+        setWidgetOpenStatus={setWidgetOpenStatus}
+        addNewWidget={addNewWidget}
+      />
 
-      <div
-        className={`card center add-widget ${
-          widgetOpenStatus[-1] ? "open" : ""
-        }`}
-        onClick={handleAddWidgetClick}
-      >
-        {widgetOpenStatus[-1] ? (
-          <form onSubmit={handleSubmit} className="">
-            <div>
-              <input
-                value={newWidget.link}
-                onChange={handleInputChange}
-              ></input>
-              <ColorPicker
-                color={newWidget.color}
-                onChange={handleColorPickerChange}
-              ></ColorPicker>
-            </div>
-
-            <button type="submit">Add Link</button>
-          </form>
-        ) : (
-          "+"
-        )}
-      </div>
-      {/* <button onClick={handleClearClick}>Clear</button> */}
       <h1>Background</h1>
     </div>
   );
 };
 
 export default ModalSettingsWindow;
-
-const randomColor = (): RGBColor => {
-  return {
-    r: Math.floor(Math.random() * 255),
-    g: Math.floor(Math.random() * 255),
-    b: Math.floor(Math.random() * 255),
-    a: 1,
-  };
-};
